@@ -87,6 +87,9 @@ _has_repo_or_self() {
 #   SIGNER_EMAIL=$(gpg --list-keys --fingerprint --with-colons 2>&1 | grep 'uid:' |  awk -F: '{print $10}' | gawk 'match($0, /(.+)<([^>]+)>/, a) {print a[2]}')
 # }
 _set_ouputs() {
+  if [ "$1" = "echo_on" ]; then
+    echo '::echo::on'
+  fi
   echo "::set-output name=ref::${GIT_REF}"
   echo "::set-output name=commit::${GIT_COMMIT}"
   echo "::set-output name=signer_name::${SIGNER_NAME}"
@@ -179,13 +182,10 @@ _pull_repo() {
 
 _init_gpg_config() {
   mkdir -p ~/.gnupg
+  touch ~/.gnupg/pubring.kbx
   echo "keyserver hkp://pgp.rediris.es" >> ~/.gnupg/gpg.conf # works, but why? loop afew ks maybe
   # echo "keyserver hkps://keys.openpgp.org" >> ~/.gnupg/gpg.conf
   # echo "keyserver hkp://pgp.mit.edu" >> ~/.gnupg/gpg.conf
-}
-
-_sanitize_key() {
-  echo "${INPUT_PUBKEY}" | sed 's/^0a//'
 }
 
 _import_from_keyserver() {
@@ -196,8 +196,8 @@ _import_from_keyserver() {
   else
     echo "Import failed"
 
-    ERROR=$(echo "$result" | tail -1 | sed --expression='s/\"/\\"/g') # escape any quotes for json
-    echo '{"type": "-1","exit_code": 1,"msg": "ERR:  =--"}' | jq -r ".msg |= \"ERR:  $ERROR\"" | jq -r
+    ERROR=$(echo "$result" | tail -5 | sed --expression='s/\"/\\"/g') # escape any quotes for json
+    echo '{"func": "_import_from_keyserver()","exit_code": 1,"msg": "ERR:  =--"}' | jq -r ".msg |= \"ERR:  $ERROR\"" | jq -r
     exit 1
   fi
 }
@@ -205,15 +205,15 @@ _import_from_keyserver() {
 
 _import_from_url() {
   echo "Importing from url"
+  _init_gpg_config
   if result=$( { wget -qO- "${INPUT_PUBKEY_URL}" | gpg --import; } 2>&1 ); then
-  
     echo "Import successful"
   else
     echo "Import failed"
 
 
     ERROR=$(echo "$result" | tail -5 | sed --expression='s/\"/\\"/g') # escape any quotes for json
-    echo '{"type": "-1","exit_code": 1,"msg": "ERR:  =--"}' | jq -r ".msg |= \"ERR:  $ERROR\"" | jq -r
+    echo '{"func": "_import_from_url()","exit_code": 1,"msg": "ERR:  =--"}' | jq -r ".msg |= \"ERR:  $ERROR\"" | jq -r
     exit 1
   fi
 }
@@ -276,16 +276,16 @@ _verify_all() {
     if [ "$(_get_tag_type)" = "commit" ]; then
       echo "doing a verify-commit cause its a lightweight tag"
       _verify_commit "$INPUT_TAG"
-      _set_ouputs
+      _set_ouputs "echo_on"
     elif [ "$(_get_tag_type)" = "tag" ]; then
       echo "doing a verify-tag cause its an annotated tag"
       _verify_tag
-      _set_ouputs
+      _set_ouputs "echo_on"
     fi
   elif [ "$GIT_OBJ" = "commit" ]; then # last case, it's a
       echo "doing a verify-commit cause its a commit"
       _verify_commit "$INPUT_REF"
-      _set_ouputs
+      _set_ouputs "echo_on"
   fi
 }
 
