@@ -4,7 +4,7 @@ set -e
 
 apk add --no-cache --quiet ca-certificates gawk git gnupg
 
-## funtions
+## functions
 
 _print_actions_debug() {
   echo "::debug::${1}"
@@ -171,7 +171,7 @@ _verify_tag() {
 _pull_repo() {
   if [ -n "${INPUT_REPO}" ]; then
     # mkdir -p /tmp/repo_to_validate
-    echo "Cloing repo ${INPUT_REPO}"
+    echo "Cloning repo ${INPUT_REPO}"
     git clone "${INPUT_REPO}" /tmp/repo_to_validate
     cd /tmp/repo_to_validate || exit
   fi
