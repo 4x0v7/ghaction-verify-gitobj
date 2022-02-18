@@ -13,7 +13,6 @@ inputs:
   ref:
     description: 'A git ref, eg. refs/heads/main, HEAD, v0.1.0, 2965f6b'
     required: true
-    # default: HEAD
   tag:
     description: 'an annotated or lightweight tag'
     required: false
@@ -31,9 +30,9 @@ inputs:
 
 outputs:
   signed:
-    description: 'bool of result' # true
+    description: 'bool of result'
   ref:
-    description: 'git ref that was passed in'
+    description: 'git ref that was passed in to verify'
   commit:
     description: 'git commit sha of ref'
   signer_name:
@@ -44,9 +43,9 @@ outputs:
     description: 'Date the signature was made in ISO-8601 format' # 2022-02-17T16:44:21+0000
                                                                   # gpg: Signature made Thu Feb 17 16:44:21 2022 UTC
   signer_fingerprint:
-    description: 'Signer GPG key full fingerprint'
+    description: 'Signer gpg key full fingerprint'
   signer_longid:
-    description: 'Signer GPG key in long format'
+    description: 'Signer gpg key in long format'
 
 
   # pubkey_url_tls:
