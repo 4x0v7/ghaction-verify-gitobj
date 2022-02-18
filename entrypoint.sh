@@ -4,14 +4,27 @@ set -e
 
 apk add --no-cache --quiet ca-certificates gawk git gnupg
 
-echo "got INPUT_REPO: ${INPUT_REPO}"
-echo "got INPUT_REF: ${INPUT_REF}"
-echo "got INPUT_TAG: ${INPUT_TAG}"
-echo "got INPUT_PUBKEY: ${INPUT_PUBKEY}"
-echo "got INPUT_PUBKEY_URL: ${INPUT_PUBKEY_URL}"
-echo "got INPUT_PUBKEY_URL_HASH: ${INPUT_PUBKEY_URL_HASH}"
-
 ## funtions
+
+_print_actions_debug() {
+  echo "::debug::${1}"
+}
+
+_print_actions_debug "got INPUT_REPO: ${INPUT_REPO}"
+_print_actions_debug "got INPUT_REF: ${INPUT_REF}"
+_print_actions_debug "got INPUT_TAG: ${INPUT_TAG}"
+_print_actions_debug "got INPUT_PUBKEY: ${INPUT_PUBKEY}"
+_print_actions_debug "got INPUT_PUBKEY_URL: ${INPUT_PUBKEY_URL}"
+_print_actions_debug "got INPUT_PUBKEY_URL_HASH: ${INPUT_PUBKEY_URL_HASH}"
+
+
+_actions_start_group() {
+  echo "::group::My title"
+  echo "Inside group"
+  echo "::endgroup::"
+
+}
+
 
 _gpg_permissions_fix() {
   # To fix the " gpg: WARNING: unsafe permissions on homedir '/home/path/to/user/.gnupg' " error
@@ -181,61 +194,28 @@ _import_from_keyserver() {
   if result=$(gpg --batch --recv "${INPUT_PUBKEY}" 2>&1); then
     echo "Import successful"
   else
-    echo "Import failed" #>&2
+    echo "Import failed"
+
     ERROR=$(echo "$result" | tail -1 | sed --expression='s/\"/\\"/g') # escape any quotes for json
-    # shell_quote "$ERROR"
-    # ERROR=$(echo "$ERROR" | sed --expression='s/\"/\\"/g')
-    # echo "$ERROR"
     echo '{"type": "-1","exit_code": 1,"msg": "ERR:  =--"}' | jq -r ".msg |= \"ERR:  $ERROR\"" | jq -r
     exit 1
-    # echo '{"type": "-1","exit_code": 1,"msg": "ERR:  =--"}' |tail -1| jq -r ".msg" "|= echo \"$ERROR\""
-    # echo '{"type": "-1","exit_code": 1,"msg": ""}' |tail -1| jq --arg error "$ERROR" -r '.msg |= "ERR:  $error"'
-    # jq --arg path "$PRIV_KEY" '.organizations.Org1MSP.adminPrivateKey.path |= $path' explorer/connection-profile/test-network.json 
-    # if ec=$(echo "$result" | jq -r '.exit_code'); then
-    #   if [ "$ec" = 1 ]; then
-    #     echo "$result" | jq
-    #     exit 1
-    #   fi
-    # fi
   fi
 }
-
-_check_import() {
-  if result=$(_import_from_keyserver); then
-    if ec=$(echo "$result" | jq -r '.exit_code'); then
-      if [ "$ec" = 1 ]; then
-        echo "$result" | jq
-        exit 1
-      fi
-    fi
-  fi
-}
-
-##RMrf
-# _verify_tag() {
-#     # vcmd="git verify-tag ${INPUT_TAG}"
-#     if result=$(git verify-tag "${INPUT_TAG}" 2>&1); then
-#       echo "Verify tag successful"
-#       SIGNED_BOOL='true'
-#       echo "::set-output name=signed::${SIGNED_BOOL}"
-#     else
-#       echo "Verify tag failed" >&2
-#       SIGNED_BOOL='false'
-#       echo "$result"
-#       echo '{"type": "-1","exit_code": 1,"msg": "ERR:  =--"}' | jq -r ".msg |= \"ERR:  $result\""
-#       echo "::set-output name=signed::${SIGNED_BOOL}"
-#     fi
-# }
-
-
-
-
-
 
 
 _import_from_url() {
-  wget -qO- "${INPUT_PUBKEY_URL}" | gpg --import
+  echo "Importing from url"
+  if result=$( { wget -qO- "${INPUT_PUBKEY_URL}" | gpg --import; } 2>&1 ); then
+  
+    echo "Import successful"
+  else
+    echo "Import failed"
 
+
+    ERROR=$(echo "$result" | tail -5 | sed --expression='s/\"/\\"/g') # escape any quotes for json
+    echo '{"type": "-1","exit_code": 1,"msg": "ERR:  =--"}' | jq -r ".msg |= \"ERR:  $ERROR\"" | jq -r
+    exit 1
+  fi
 }
 
 _set_key_trust() {
