@@ -20,10 +20,11 @@ inputs:
   pubkey:
     description: 'Public key of the object signer which validates the signature'
     required: false
-    default: '0x5DE3E0509C47EA3CF04A42D34AEE18F83AFDEB23' # GitHub (web-flow commit signing) <noreply@github.com>
+  # https://docs.github.com/en/authentication/managing-commit-signature-verification/about-commit-signature-verification
   pubkey_url:
     description: 'URL to a public key file (ex. https://github.com/web-flow.gpg)'
     required: false
+    default: https://github.com/web-flow.gpg
   pubkey_url_hash:
     description: 'SHA256 hash of the public key file (generate by hashing the public key after inspecting it)'
     required: false
