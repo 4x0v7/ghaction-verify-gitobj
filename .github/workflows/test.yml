@@ -23,7 +23,7 @@ jobs:
         tags: action-runner-ci-test
         cache-from: type=local,src=/tmp/.buildx-cache
         cache-to: type=local,dest=/tmp/.buildx-cache,mode=max
-        outputs: type=oci,dest=/tmp/image.tar
+        outputs: type=docker,dest=/tmp/image.tar
     -
       name: Upload image as artifact
       uses: actions/upload-artifact@v2
