@@ -38,13 +38,13 @@ _gpg_permissions_fix() {
 
 _has_commit_or_tag() {
   if [ -n "${INPUT_REF}" ] && [ -n "${INPUT_TAG}" ]; then
-    echo '{"func": "_has_commit_or_tag()","exit_code": 1,"msg": "ERR:  Please specify a commit, or a tag, but not both"}'
+    echo '{"func": "_has_commit_or_tag()","exit_code": 1,"msg": "ERR:  Please specify a ref, or a tag, but not both"}'
   elif [ -z "${INPUT_REF}" ] && [ -n "${INPUT_TAG}" ]; then
     echo '{"type": "tag","ref": "","exit_code": 0,"msg": ""}' | jq -r ".ref |= \"$INPUT_TAG\""
   elif [ -n "${INPUT_REF}" ] && [ -z "${INPUT_TAG}" ]; then
     echo '{"type": "commit","ref": "","exit_code": 0,"msg": ""}' | jq -r ".ref |= \"$INPUT_REF\""
   else
-    echo '{"func": "_has_commit_or_tag()","exit_code": 1,"msg": "ERR:  Please specify a commit, or a tag"}'
+    echo '{"func": "_has_commit_or_tag()","exit_code": 1,"msg": "ERR:  Please specify a ref, or a tag"}'
   fi
 }
 
