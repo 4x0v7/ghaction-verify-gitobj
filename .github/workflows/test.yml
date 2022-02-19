@@ -27,7 +27,7 @@ jobs:
         - test_type: inputs_has_key_and_url_throws
           input_repo: https://github.com/github/platform-samples
           input_commit: 37ae55f6
-          input_pubkey: 0x5DE3E0509C47EA3CF04A42D34AEE18F83AFDEB23
+          input_pubkey: 5DE3E0509C47EA3CF04A42D34AEE18F83AFDEB23 #fingerprint
           input_pubkey_url: https://github.com/web-flow.gpg
         - test_type: inputs_has_url_only_passes
           input_repo: https://github.com/github/platform-samples
@@ -36,7 +36,7 @@ jobs:
         - test_type: inputs_has_key_only_passes
           input_repo: https://github.com/github/platform-samples
           input_commit: 37ae55f6
-          input_pubkey: 0x5DE3E0509C47EA3CF04A42D34AEE18F83AFDEB23
+          input_pubkey: 4AEE18F83AFDEB23 #longkey
         - test_type: inputs_has_no_key_and_url_throws
           input_repo: https://github.com/github/platform-samples
           input_commit: 37ae55f6
