@@ -1,5 +1,7 @@
 [![](https://img.shields.io/github/v/tag/4x0v7/ghaction-verify-gitobj)](https://github.com/4x0v7/ghaction-verify-gitobj)
-
+[![Test Action](https://github.com/4x0v7/ghaction-verify-gitobj/actions/workflows/test.yml/badge.svg)](https://github.com/4x0v7/ghaction-verify-gitobj/actions/workflows/test.yml)
+[![Verify Action](https://github.com/4x0v7/ghaction-verify-gitobj/actions/workflows/ci.yml/badge.svg)](https://github.com/4x0v7/ghaction-verify-gitobj/actions/workflows/ci.yml)
+[![Verify Docs](https://github.com/4x0v7/ghaction-verify-gitobj/actions/workflows/docs.yml/badge.svg)](https://github.com/4x0v7/ghaction-verify-gitobj/actions/workflows/docs.yml)
 # Verify git object
 
 > This action validates a commit or tag, in a given repo, is signed by a given key
