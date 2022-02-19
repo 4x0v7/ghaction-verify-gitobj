@@ -17,3 +17,9 @@ jobs:
         with:
           repo: https://github.com/github/platform-samples
           ref: 37ae55f6942b62b6801d1656d7b51e6aaa9aab27
+  shellcheck:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Run ShellCheck
+        uses: ludeeus/action-shellcheck@master
