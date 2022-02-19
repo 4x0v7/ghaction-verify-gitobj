@@ -35,6 +35,7 @@ jobs:
   test:
     needs: build
     runs-on: ubuntu-latest
+    continue-on-error: ${{ contains( '${{ matrix.test_type }}', 'throws') }}
     strategy:
       fail-fast: false
       matrix:
