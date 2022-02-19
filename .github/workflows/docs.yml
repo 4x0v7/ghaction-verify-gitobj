@@ -1,0 +1,33 @@
+name: Verify Docs
+
+on:
+  push:
+  repository_dispatch:
+
+jobs:
+  markdown:
+    runs-on: ubuntu-latest
+    steps:
+      -
+        name: Checkout
+        uses: actions/checkout@v2
+      -
+        name: markdownlint-cli
+        uses: nosborn/github-action-markdown-cli@v3.0.1
+        with:
+          files: .
+          config_file: .markdownlint.yaml
+      -
+        name: Link Checker
+        id: lychee
+        uses: lycheeverse/lychee-action@v1.3.0
+        env:
+          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+      -
+        name: Create Issue From File
+        if: ${{ steps.lychee.outputs.exit_code != 0 }}
+        uses: peter-evans/create-issue-from-file@v3
+        with:
+          title: Link Checker Report
+          content-filepath: ./lychee/out.md
+          labels: report, automated issue
