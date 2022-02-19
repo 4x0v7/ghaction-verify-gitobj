@@ -19,7 +19,6 @@ inputs:
   pubkey:
     description: 'Public key of the object signer which validates the signature'
     required: false
-  # https://docs.github.com/en/authentication/managing-commit-signature-verification/about-commit-signature-verification
   pubkey_url:
     description: 'URL to a public key file (ex. https://github.com/web-flow.gpg)'
     required: false
