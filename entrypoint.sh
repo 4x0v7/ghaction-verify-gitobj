@@ -2,8 +2,6 @@
 
 set -e
 
-apk add --no-cache --quiet ca-certificates gawk git gnupg
-
 ## functions
 
 _print_actions_debug() {
