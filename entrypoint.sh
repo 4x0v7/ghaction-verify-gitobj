@@ -17,25 +17,13 @@ _print_actions_debug "got INPUT_PUBKEY: ${INPUT_PUBKEY}"
 _print_actions_debug "got INPUT_PUBKEY_URL: ${INPUT_PUBKEY_URL}"
 _print_actions_debug "got INPUT_PUBKEY_URL_HASH: ${INPUT_PUBKEY_URL_HASH}"
 
-
 _actions_start_group() {
-  echo "::group::My title"
-  echo "Inside group"
+  echo "::group::$1"
+  echo "$2"
   echo "::endgroup::"
 }
 
-
-_gpg_permissions_fix() {
-  # To fix the " gpg: WARNING: unsafe permissions on homedir '/home/path/to/user/.gnupg' " error
-  # Make sure that the .gnupg directory and its contents is accessibile by your user.
-  mkdir -p ~/.gnupg
-  chown -R "$(whoami)" ~/.gnupg/
-
-  # Also correct the permissions and access rights on the directory
-  # chmod 600 ~/.gnupg/*
-  chmod 700 ~/.gnupg
-}
-
+# argparsing logic
 _has_commit_or_tag() {
   if [ -n "${INPUT_REF}" ] && [ -n "${INPUT_TAG}" ]; then
     echo '{"func": "_has_commit_or_tag()","exit_code": 1,"msg": "ERR:  Please specify a ref, or a tag, but not both"}'
@@ -61,10 +49,15 @@ _has_pubkey_or_url() {
   fi
 }
 
+_parse_success_message() {
+  SIGNER_NAME=$(echo "$VERIFY_SUCCESS" | grep 'GOODSIG' |  awk -F' ' '{ print substr($0, index($0,$4)) }' | awk 'match($0, /(.+)<([^>]+)>/, a) {print a[1]}')
+  SIGNER_EMAIL=$(echo "$VERIFY_SUCCESS" | grep 'GOODSIG' |  awk -F' ' '{ print substr($0, index($0,$4)) }' | awk 'match($0, /(.+)<([^>]+)>/, a) {print a[2]}')
+  SIGNATURE_DATE=$(echo "$VERIFY_SUCCESS" | grep 'VALIDSIG' |  awk -F' ' '{print $5}' | jq -r todateiso8601)
+  SIGNER_FINGERPRINT=$(echo "$VERIFY_SUCCESS" | grep 'VALIDSIG' |  awk -F' ' '{print $3}')
+  SIGNER_LONGID=$(echo "$VERIFY_SUCCESS" | grep 'GOODSIG' |  awk -F' ' '{print $3}')
+}
+
 _set_ouputs() {
-  if [ "$1" = "echo_on" ]; then
-    echo '::echo::on'
-  fi
   echo "::set-output name=ref::${GIT_REF}"
   echo "::set-output name=commit::${GIT_COMMIT}"
   echo "::set-output name=signer_name::${SIGNER_NAME}"
@@ -72,15 +65,6 @@ _set_ouputs() {
   echo "::set-output name=signature_date::${SIGNATURE_DATE}"
   echo "::set-output name=signer_fingerprint::${SIGNER_FINGERPRINT}"
   echo "::set-output name=signer_longid::${SIGNER_LONGID}"
-}
-
-_get_tag_type() {
-  TT=$(git for-each-ref "refs/tags/$INPUT_TAG" | awk -F' ' '{print $2}')
-  echo "${TT}"
-}
-
-_known_good_verify() {
-  git verify-commit "${INPUT_TAG}"
 }
 
 _verify_commit() {
@@ -103,15 +87,6 @@ _verify_commit() {
     fi
 }
 
-_parse_success_message() {
-  SIGNER_NAME=$(echo "$VERIFY_SUCCESS" | grep 'GOODSIG' |  awk -F' ' '{ print substr($0, index($0,$4)) }' | awk 'match($0, /(.+)<([^>]+)>/, a) {print a[1]}')
-  SIGNER_EMAIL=$(echo "$VERIFY_SUCCESS" | grep 'GOODSIG' |  awk -F' ' '{ print substr($0, index($0,$4)) }' | awk 'match($0, /(.+)<([^>]+)>/, a) {print a[2]}')
-  SIGNATURE_DATE=$(echo "$VERIFY_SUCCESS" | grep 'VALIDSIG' |  awk -F' ' '{print $5}' | jq -r todateiso8601)
-  SIGNER_FINGERPRINT=$(echo "$VERIFY_SUCCESS" | grep 'VALIDSIG' |  awk -F' ' '{print $3}')
-  SIGNER_LONGID=$(echo "$VERIFY_SUCCESS" | grep 'GOODSIG' |  awk -F' ' '{print $3}')
-}
-
-
 _verify_tag() {
     if result=$(git verify-tag "${INPUT_TAG}" 2>&1); then
       echo "Verify tag successful"
@@ -126,15 +101,39 @@ _verify_tag() {
     fi
 }
 
-_pull_repo() {
-  if [ -n "${INPUT_REPO}" ]; then
-    echo "Cloning repo ${INPUT_REPO}"
-    git clone "${INPUT_REPO}" /tmp/repo_to_validate
-    cd /tmp/repo_to_validate || exit
+_check_args() {
+  if result=$(_has_pubkey_or_url); then
+    if ec=$(echo "$result" | jq -r '.exit_code'); then
+      if [ "$ec" = 1 ]; then
+        echo "$result" | jq
+        exit 1
+      fi
+    fi
+  fi
+
+  if result=$(_has_commit_or_tag); then
+    if ec=$(echo "$result" | jq -r '.exit_code'); then
+      if [ "$ec" = 1 ]; then
+        echo "$result" | jq
+        exit 1
+      fi
+    fi
   fi
 }
 
+_gpg_permissions_fix() {
+  # To fix the " gpg: WARNING: unsafe permissions on homedir '/home/path/to/user/.gnupg' " error
+  # Make sure that the .gnupg directory and its contents is accessibile by your user.
+  mkdir -p ~/.gnupg
+  chown -R "$(whoami)" ~/.gnupg/
+
+  # Also correct the permissions and access rights on the directory
+  # chmod 600 ~/.gnupg/*
+  chmod 700 ~/.gnupg
+}
+
 _init_gpg_config() {
+  _gpg_permissions_fix
   mkdir -p ~/.gnupg
   touch ~/.gnupg/pubring.kbx
   echo "keyserver hkp://pgp.rediris.es" >> ~/.gnupg/gpg.conf # works, but why? loop afew ks maybe
@@ -155,7 +154,6 @@ _import_from_keyserver() {
     exit 1
   fi
 }
-
 
 _import_from_url() {
   echo "Importing from url"
@@ -180,26 +178,6 @@ _update_trustdb() {
   gpg --update-trustdb 2>&1 | grep 'gpg: key'
 }
 
-_check_args() {
-  if result=$(_has_pubkey_or_url); then
-    if ec=$(echo "$result" | jq -r '.exit_code'); then
-      if [ "$ec" = 1 ]; then
-        echo "$result" | jq
-        exit 1
-      fi
-    fi
-  fi
-
-  if result=$(_has_commit_or_tag); then
-    if ec=$(echo "$result" | jq -r '.exit_code'); then
-      if [ "$ec" = 1 ]; then
-        echo "$result" | jq
-        exit 1
-      fi
-    fi
-  fi
-}
-
 _import_pubkey() {
   SIGN_KEY=$(_has_pubkey_or_url | jq -r '.type')
 
@@ -216,6 +194,19 @@ _import_pubkey() {
   fi
 }
 
+_pull_repo() {
+  if [ -n "${INPUT_REPO}" ]; then
+    echo "Cloning repo ${INPUT_REPO}"
+    git clone "${INPUT_REPO}" /tmp/repo_to_validate
+    cd /tmp/repo_to_validate || exit
+  fi
+}
+
+_get_tag_type() {
+  TT=$(git for-each-ref "refs/tags/$INPUT_TAG" | awk -F' ' '{print $2}')
+  echo "${TT}"
+}
+
 _verify_all() {
   GIT_OBJ=$(_has_commit_or_tag | jq -r '.type')
   GIT_REF=$(_has_commit_or_tag | jq -r '.ref')
@@ -224,17 +215,20 @@ _verify_all() {
   if [ "$GIT_OBJ" = "tag" ]; then
     if [ "$(_get_tag_type)" = "commit" ]; then
       echo "doing a verify-commit cause its a lightweight tag"
+      echo '::echo::on'
       _verify_commit "$INPUT_TAG"
-      _set_ouputs "echo_on"
+      _set_ouputs
     elif [ "$(_get_tag_type)" = "tag" ]; then
       echo "doing a verify-tag cause its an annotated tag"
+      echo '::echo::on'
       _verify_tag
-      _set_ouputs "echo_on"
+      _set_ouputs
     fi
-  elif [ "$GIT_OBJ" = "commit" ]; then # last case, it's a
+  elif [ "$GIT_OBJ" = "commit" ]; then
       echo "doing a verify-commit cause its a commit"
+      echo '::echo::on'
       _verify_commit "$INPUT_REF"
-      _set_ouputs "echo_on"
+      _set_ouputs
   fi
 }
 
@@ -242,7 +236,7 @@ _verify_all() {
 ## Start #
 ##########
 
-_gpg_permissions_fix
+_init_gpg_config
 _check_args
 _import_pubkey
 _pull_repo
