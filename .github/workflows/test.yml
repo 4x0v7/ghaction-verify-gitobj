@@ -5,7 +5,35 @@ on:
   repository_dispatch:
 
 jobs:
-  verify:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    -
+      uses: docker/setup-buildx-action@v1
+      with:
+        install: true
+        driver: docker
+      id: buildx
+    -
+      name: Build and upload image tar file
+      id: docker_build
+      uses: docker/build-push-action@v2
+      with:
+        context: .
+        file: Dockerfile
+        builder: ${{ steps.buildx.outputs.name }}
+        tags: action-runner-ci-test
+        cache-from: type=local,src=/tmp/.buildx-cache
+        cache-to: type=local,dest=/tmp/.buildx-cache,mode=max
+        outputs: type=oci,dest=/tmp/image.tar
+    -
+      name: Upload image as artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: image
+        path: /tmp/image.tar
+
+  test:
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -47,16 +75,19 @@ jobs:
           input_pubkey_url: ''
 
     steps:
-    - uses: actions/checkout@v2
-    - uses: docker/setup-buildx-action@v1
-      with:
-        install: true
-        driver: docker
-      id: buildx
-    - name: Build
+    -
+      uses: actions/checkout@v2
+    -
+      name: Download artifacts (Docker images) from previous workflows
+      uses: actions/download-artifact@v2
+    -
+      name: Load Docker images from previous workflows
       run: |
-        docker build -t action-runner .
-    - uses: kohlerdominik/docker-run-action@v1
+        docker load --input image/image.tar
+    -
+      run: docker image ls
+    -
+      uses: kohlerdominik/docker-run-action@v1
       env:
         INPUT_REPO: ${{ matrix.input_repo }}
         INPUT_REF: ${{ matrix.input_ref }}
@@ -64,7 +95,7 @@ jobs:
         INPUT_PUBKEY: ${{ matrix.input_pubkey }}
         INPUT_PUBKEY_URL: ${{ matrix.input_pubkey_url }}
       with:
-        image: action-runner
+        image: action-runner-ci-test
         volumes: ${{ github.workspace }}:/workspace
         environment: |
           INPUT_REPO=${{ matrix.input_repo }}
