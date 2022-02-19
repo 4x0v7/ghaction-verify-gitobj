@@ -2,6 +2,7 @@
 [![Test Action](https://github.com/4x0v7/ghaction-verify-gitobj/actions/workflows/test.yml/badge.svg)](https://github.com/4x0v7/ghaction-verify-gitobj/actions/workflows/test.yml)
 [![Verify Action](https://github.com/4x0v7/ghaction-verify-gitobj/actions/workflows/ci.yml/badge.svg)](https://github.com/4x0v7/ghaction-verify-gitobj/actions/workflows/ci.yml)
 [![Verify Docs](https://github.com/4x0v7/ghaction-verify-gitobj/actions/workflows/docs.yml/badge.svg)](https://github.com/4x0v7/ghaction-verify-gitobj/actions/workflows/docs.yml)
+
 # Verify git object
 
 > This action validates a commit or tag, in a given repo, is signed by a given key
@@ -90,6 +91,102 @@ A number of outputs are generated from the commit signature. Reference the [acti
 ::set-output name=signature_date::2021-12-02T18:02:44Z
 ::set-output name=signer_fingerprint::5DE3E0509C47EA3CF04A42D34AEE18F83AFDEB23
 ::set-output name=signer_longid::4AEE18F83AFDEB23
+```
+
+## Example
+
+```yaml
+# .github/workflows/ci.yml
+
+name: Verify Action
+
+on:
+  push:
+  repository_dispatch:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      -
+        name: Checkout
+        uses: actions/checkout@v2
+      -
+        name: Verify
+        uses: 4x0v7/ghaction-verify-gitobj@v0.2.0
+        with:
+          repo: https://github.com/github/platform-samples
+          ref: 37ae55f6942b62b6801d1656d7b51e6aaa9aab27
+  shellcheck:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Run ShellCheck
+        uses: ludeeus/action-shellcheck@master
+
+```
+
+<!-- embedme action.yml -->
+```yaml
+# action.yml
+name: 'Verify Git object'
+description: 'Verify a git object (commit/tag) signature'
+author: '4x0v7'
+branding:
+  color: 'green'
+  icon: 'crosshair'
+inputs:
+  repo:
+    description: 'git repository to validate'
+    required: false
+    default: self
+  ref:
+    description: 'A git ref, eg. refs/heads/main, HEAD, v0.1.0, 2965f6b'
+    required: true
+  tag:
+    description: 'an annotated or lightweight tag'
+    required: false
+  pubkey:
+    description: 'Public key of the object signer which validates the signature'
+    required: false
+  pubkey_url:
+    description: 'URL to a public key file (ex. https://github.com/web-flow.gpg)'
+    required: false
+    default: https://github.com/web-flow.gpg
+  pubkey_url_hash:
+    description: 'SHA256 hash of the public key file (generate by hashing the public key after inspecting it)'
+    required: false
+
+outputs:
+  signed:
+    description: 'bool of result'
+  ref:
+    description: 'git ref that was passed in to verify'
+  commit:
+    description: 'git commit sha of ref'
+  signer_name:
+    description: 'Name of the signer' # GitHub (web-flow commit signing)
+  signer_email:
+    description: 'Email address of the signer' # noreply@github.com
+  signature_date:
+    description: 'Date the signature was made in ISO-8601 format' # 2022-02-17T16:44:21+0000
+                                                                  # gpg: Signature made Thu Feb 17 16:44:21 2022 UTC
+  signer_fingerprint:
+    description: 'Signer gpg key full fingerprint'
+  signer_longid:
+    description: 'Signer gpg key in long format'
+
+
+  # pubkey_url_tls:
+  #   description: 'TLS detail from connection to pubkey_url' # { "supported_protocols": [{"tls10": false, "tls12": true, "tls13": true }] }
+  #                                                           # Output some json
+
+runs:
+  using: 'docker'
+  image: 'Dockerfile'
+  # args:
+  #   - # all args are read from ENV in entrypoint
+
 ```
 
 ## Tests
@@ -213,101 +310,5 @@ jobs:
         run: |
           echo "Running tests"
           ./entrypoint.sh
-
-```
-
-## Example
-
-```yaml
-# .github/workflows/ci.yml
-
-name: Verify Action
-
-on:
-  push:
-  repository_dispatch:
-
-jobs:
-  verify:
-    runs-on: ubuntu-latest
-    steps:
-      -
-        name: Checkout
-        uses: actions/checkout@v2
-      -
-        name: Verify
-        uses: 4x0v7/ghaction-verify-gitobj@v0.2.0
-        with:
-          repo: https://github.com/github/platform-samples
-          ref: 37ae55f6942b62b6801d1656d7b51e6aaa9aab27
-  shellcheck:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - name: Run ShellCheck
-        uses: ludeeus/action-shellcheck@master
-
-```
-
-<!-- embedme action.yml -->
-```yaml
-# action.yml
-name: 'Verify Git object'
-description: 'Verify a git object (commit/tag) signature'
-author: '4x0v7'
-branding:
-  color: 'green'
-  icon: 'crosshair'
-inputs:
-  repo:
-    description: 'git repository to validate'
-    required: false
-    default: self
-  ref:
-    description: 'A git ref, eg. refs/heads/main, HEAD, v0.1.0, 2965f6b'
-    required: true
-  tag:
-    description: 'an annotated or lightweight tag'
-    required: false
-  pubkey:
-    description: 'Public key of the object signer which validates the signature'
-    required: false
-  pubkey_url:
-    description: 'URL to a public key file (ex. https://github.com/web-flow.gpg)'
-    required: false
-    default: https://github.com/web-flow.gpg
-  pubkey_url_hash:
-    description: 'SHA256 hash of the public key file (generate by hashing the public key after inspecting it)'
-    required: false
-
-outputs:
-  signed:
-    description: 'bool of result'
-  ref:
-    description: 'git ref that was passed in to verify'
-  commit:
-    description: 'git commit sha of ref'
-  signer_name:
-    description: 'Name of the signer' # GitHub (web-flow commit signing)
-  signer_email:
-    description: 'Email address of the signer' # noreply@github.com
-  signature_date:
-    description: 'Date the signature was made in ISO-8601 format' # 2022-02-17T16:44:21+0000
-                                                                  # gpg: Signature made Thu Feb 17 16:44:21 2022 UTC
-  signer_fingerprint:
-    description: 'Signer gpg key full fingerprint'
-  signer_longid:
-    description: 'Signer gpg key in long format'
-
-
-  # pubkey_url_tls:
-  #   description: 'TLS detail from connection to pubkey_url' # { "supported_protocols": [{"tls10": false, "tls12": true, "tls13": true }] }
-  #                                                           # Output some json
-
-runs:
-  using: 'docker'
-  image: 'Dockerfile'
-  # args:
-  #   - # all args are read from ENV in entrypoint
 
 ```
