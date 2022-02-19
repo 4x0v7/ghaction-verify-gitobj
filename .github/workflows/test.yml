@@ -12,34 +12,34 @@ jobs:
         include:
         # Commit & tag combos
         - test_type: inputs_has_commit_and_tag_throws
-          input_repo: https://github.com/github/platform-samples
-          input_tag: v0.0.0
-          input_commit: 37ae55f6
+          input_repo: https://github.com/kubernetes/kubernetes
+          input_tag: v1.23.4
+          input_ref: 37ae55f6
         - test_type: inputs_has_tag_only_passes
-          input_tag: afaf2f02650a6854f45cbf5fca7142b7c44ef51b
+          input_tag: v1.23.4
         - test_type: inputs_has_commit_only_passes
-          input_commit: afaf2f02650a6854f45cbf5fca7142b7c44ef51b
+          input_ref: e6c093d
         - test_type: inputs_has_no_commit_and_tag_throws
           input_tag: ''
-          input_commit: ''
+          input_ref: ''
 
         # Key & url combos
         - test_type: inputs_has_key_and_url_throws
           input_repo: https://github.com/github/platform-samples
-          input_commit: 37ae55f6
+          input_ref: 37ae55f6
           input_pubkey: 5DE3E0509C47EA3CF04A42D34AEE18F83AFDEB23 #fingerprint
           input_pubkey_url: https://github.com/web-flow.gpg
         - test_type: inputs_has_url_only_passes
           input_repo: https://github.com/github/platform-samples
-          input_commit: 37ae55f6
+          input_ref: 37ae55f6
           input_pubkey_url: https://github.com/web-flow.gpg
         - test_type: inputs_has_key_only_passes
           input_repo: https://github.com/github/platform-samples
-          input_commit: 37ae55f6
+          input_ref: 37ae55f6
           input_pubkey: 4AEE18F83AFDEB23 #longkey
         - test_type: inputs_has_no_key_and_url_throws
           input_repo: https://github.com/github/platform-samples
-          input_commit: 37ae55f6
+          input_ref: 37ae55f6
           input_pubkey: ''
           input_pubkey_url: ''
 
