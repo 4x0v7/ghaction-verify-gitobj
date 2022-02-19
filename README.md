@@ -126,69 +126,6 @@ jobs:
 
 ```
 
-<!-- embedme action.yml -->
-```yaml
-# action.yml
-name: 'Verify Git object'
-description: 'Verify a git object (commit/tag) signature'
-author: '4x0v7'
-branding:
-  color: 'green'
-  icon: 'crosshair'
-inputs:
-  repo:
-    description: 'git repository to validate'
-    required: false
-    default: self
-  ref:
-    description: 'A git ref, eg. refs/heads/main, HEAD, v0.1.0, 2965f6b'
-    required: true
-  tag:
-    description: 'an annotated or lightweight tag'
-    required: false
-  pubkey:
-    description: 'Public key of the object signer which validates the signature'
-    required: false
-  pubkey_url:
-    description: 'URL to a public key file (ex. https://github.com/web-flow.gpg)'
-    required: false
-    default: https://github.com/web-flow.gpg
-  pubkey_url_hash:
-    description: 'SHA256 hash of the public key file (generate by hashing the public key after inspecting it)'
-    required: false
-
-outputs:
-  signed:
-    description: 'bool of result'
-  ref:
-    description: 'git ref that was passed in to verify'
-  commit:
-    description: 'git commit sha of ref'
-  signer_name:
-    description: 'Name of the signer' # GitHub (web-flow commit signing)
-  signer_email:
-    description: 'Email address of the signer' # noreply@github.com
-  signature_date:
-    description: 'Date the signature was made in ISO-8601 format' # 2022-02-17T16:44:21+0000
-                                                                  # gpg: Signature made Thu Feb 17 16:44:21 2022 UTC
-  signer_fingerprint:
-    description: 'Signer gpg key full fingerprint'
-  signer_longid:
-    description: 'Signer gpg key in long format'
-
-
-  # pubkey_url_tls:
-  #   description: 'TLS detail from connection to pubkey_url' # { "supported_protocols": [{"tls10": false, "tls12": true, "tls13": true }] }
-  #                                                           # Output some json
-
-runs:
-  using: 'docker'
-  image: 'Dockerfile'
-  # args:
-  #   - # all args are read from ENV in entrypoint
-
-```
-
 ## Tests
 
 ```yaml
