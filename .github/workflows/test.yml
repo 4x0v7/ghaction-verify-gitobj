@@ -3,6 +3,7 @@ name: Test Action
 on:
   push:
   repository_dispatch:
+  workflow_dispatch:
 
 jobs:
   build:
