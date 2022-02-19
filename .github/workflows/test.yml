@@ -43,7 +43,7 @@ jobs:
         # ref & tag combos
         - test_type: inputs_has_ref_and_tag_throws
           continue-on-error: true
-          input_repo: https://github.com/4x0v7/ghaction-verify-gitob
+          input_repo: https://github.com/4x0v7/ghaction-verify-gitobj
           input_tag: v0.0.0
           input_ref: 8ab2d4fb42965f6b29fcd8c15828e4b02ae574e1
           input_pubkey_url: https://github.com/web-flow.gpg

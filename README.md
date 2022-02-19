@@ -140,7 +140,7 @@ jobs:
         # ref & tag combos
         - test_type: inputs_has_ref_and_tag_throws
           continue-on-error: true
-          input_repo: https://github.com/4x0v7/ghaction-verify-gitob
+          input_repo: https://github.com/4x0v7/ghaction-verify-gitobj
           input_tag: v0.0.0
           input_ref: 8ab2d4fb42965f6b29fcd8c15828e4b02ae574e1
           input_pubkey_url: https://github.com/web-flow.gpg
@@ -238,7 +238,6 @@ jobs:
         with:
           repo: https://github.com/github/platform-samples
           ref: 37ae55f6942b62b6801d1656d7b51e6aaa9aab27
-          pubkey: 4AEE18F83AFDEB23
   shellcheck:
     runs-on: ubuntu-latest
     steps:
