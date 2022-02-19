@@ -40,8 +40,8 @@ jobs:
       fail-fast: false
       matrix:
         include:
-        # Commit & tag combos
-        - test_type: inputs_has_commit_and_tag_throws
+        # ref & tag combos
+        - test_type: inputs_has_ref_and_tag_throws
           continue-on-error: true
           input_repo: https://github.com/4x0v7/ghaction-verify-gitob
           input_tag: v0.0.0
@@ -51,17 +51,17 @@ jobs:
           input_repo: https://github.com/kubernetes/kubernetes
           input_tag: v1.23.4
           input_pubkey: 4AEE18F83AFDEB23
-        - test_type: inputs_has_commit_only_passes
+        - test_type: inputs_has_ref_only_passes
           input_repo: https://github.com/kubernetes/kubernetes
           input_ref: a47c6592
           input_pubkey_url: https://github.com/web-flow.gpg
-        - test_type: inputs_has_no_commit_and_tag_throws
+        - test_type: inputs_has_no_ref_or_tag_throws
           continue-on-error: true
           input_tag: ''
           input_ref: ''
           input_pubkey: 4AEE18F83AFDEB23
 
-        # Key & url combos
+        # key & url combos
         - test_type: inputs_has_key_and_url_throws
           continue-on-error: true
           input_repo: https://github.com/github/platform-samples
@@ -76,7 +76,7 @@ jobs:
           input_repo: https://github.com/github/platform-samples
           input_ref: 37ae55f6
           input_pubkey: 4AEE18F83AFDEB23 #longkey
-        - test_type: inputs_has_no_key_and_url_throws
+        - test_type: inputs_has_no_key_or_url_throws
           continue-on-error: true
           input_repo: https://github.com/github/platform-samples
           input_ref: 37ae55f6
@@ -93,8 +93,6 @@ jobs:
       name: Load Docker images from previous workflows
       run: |
         docker load --input image/image.tar
-    -
-      run: docker image ls
     -
       uses: kohlerdominik/docker-run-action@v1
       env:
