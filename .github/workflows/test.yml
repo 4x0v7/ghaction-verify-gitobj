@@ -35,7 +35,7 @@ jobs:
   test:
     needs: build
     runs-on: ubuntu-latest
-    continue-on-error: ${{ matrix[].continue-on-error }}
+    continue-on-error: ${{ matrix.include.continue-on-error }}
     strategy:
       fail-fast: false
       matrix:
