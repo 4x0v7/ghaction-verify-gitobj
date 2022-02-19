@@ -96,6 +96,7 @@ jobs:
       with:
         image: action-runner-ci-test
         volumes: ${{ github.workspace }}:/workspace
+        workdir: /workspace
         environment: |
           INPUT_REPO=${{ matrix.input_repo }}
           INPUT_REF=${{ matrix.input_ref }}
