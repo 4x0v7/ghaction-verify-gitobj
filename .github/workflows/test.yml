@@ -48,6 +48,7 @@ jobs:
     - uses: docker/setup-buildx-action@v1
       with:
         install: true
+        driver: docker
       id: buildx
     - name: Build
       run: |
