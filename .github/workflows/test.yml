@@ -43,9 +43,11 @@ jobs:
           input_tag: v1.23.4
           input_ref: 37ae55f6
         - test_type: inputs_has_tag_only_passes
+          input_repo: https://github.com/kubernetes/kubernetes
           input_tag: v1.23.4
           input_pubkey: 4AEE18F83AFDEB23
         - test_type: inputs_has_commit_only_passes
+          input_repo: https://github.com/kubernetes/kubernetes
           input_ref: e6c093d
           input_pubkey_url: https://github.com/web-flow.gpg
         - test_type: inputs_has_no_commit_and_tag_throws
