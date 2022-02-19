@@ -36,7 +36,6 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     continue-on-error: ${{ contains(matrix.test_type, 'throw') }}
-    
     strategy:
       fail-fast: false
       matrix:
@@ -44,9 +43,9 @@ jobs:
         # Commit & tag combos
         - test_type: inputs_has_commit_and_tag_throws
           continue-on-error: true
-          input_repo: https://github.com/kubernetes/kubernetes
-          input_tag: v1.23.4
-          input_ref: 37ae55f6
+          input_repo: https://github.com/4x0v7/ghaction-verify-gitob
+          input_tag: v0.0.0
+          input_ref: 8ab2d4fb42965f6b29fcd8c15828e4b02ae574e1
           input_pubkey_url: https://github.com/web-flow.gpg
         - test_type: inputs_has_tag_only_passes
           input_repo: https://github.com/kubernetes/kubernetes
@@ -54,7 +53,7 @@ jobs:
           input_pubkey: 4AEE18F83AFDEB23
         - test_type: inputs_has_commit_only_passes
           input_repo: https://github.com/kubernetes/kubernetes
-          input_ref: e6c093d
+          input_ref: a47c6592
           input_pubkey_url: https://github.com/web-flow.gpg
         - test_type: inputs_has_no_commit_and_tag_throws
           continue-on-error: true
