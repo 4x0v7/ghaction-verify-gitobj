@@ -52,7 +52,7 @@ with:
   pubkey_url: https://github.com/web-flow.gpg
 ```
 
-> `pubkey` and `pubkey_url` are mutually exclusive. Providing a key and a url will produce an error
+> `pubkey` and `pubkey_url` are mutually exclusive. Providing a key _and_ a url will produce an error
 
 Public keys can be provided either directly, or as a url to a key.
 The GitHub web-flow commit signing key is used by default. See the [documentation](https://docs.github.com/en/authentication/managing-commit-signature-verification/about-commit-signature-verification)
@@ -66,12 +66,12 @@ keys can be in one of 3 possible formats
 - long key id (eg. 4AEE18F83AFDEB23)
 - hexadecimal notation (eg. '0x5DE3E0509C47EA3CF04A42D34AEE18F83AFDEB23')
 
-> Note that the hexadecimal notation must be enclosed in parentheses so yaml has a string
+> Note that the hexadecimal notation must be enclosed in single quotes so yaml has a string
 
 ## Repo
 
 By default, it is assumed the currently checked out repository is being verified.
-You cam checkout a different repository by setting `repo:`
+Checkout a different repository by setting `repo:`
 
 ```yaml
 with:
@@ -128,124 +128,4 @@ jobs:
 
 ## Tests
 
-```yaml
-# .github/workflows/test.yml
-
-name: Test Action
-
-on:
-  push:
-  repository_dispatch:
-  workflow_dispatch:
-
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-    -
-      uses: docker/setup-buildx-action@v1
-      with:
-        install: true
-      id: buildx
-    -
-      name: Build and upload image tar file
-      id: docker_build
-      uses: docker/build-push-action@v2
-      with:
-        file: ./Dockerfile
-        builder: ${{ steps.buildx.outputs.name }}
-        tags: action-runner-ci-test
-        cache-from: type=local,src=/tmp/.buildx-cache
-        cache-to: type=local,dest=/tmp/.buildx-cache,mode=max
-        outputs: type=docker,dest=/tmp/image.tar
-    -
-      name: Upload image as artifact
-      uses: actions/upload-artifact@v2
-      with:
-        name: image
-        path: /tmp/image.tar
-
-  test:
-    needs: build
-    runs-on: ubuntu-latest
-    continue-on-error: ${{ contains(matrix.test_type, 'throw') }}
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-        # ref & tag combos
-        - test_type: inputs_has_ref_and_tag_throws
-          continue-on-error: true
-          input_repo: https://github.com/4x0v7/ghaction-verify-gitobj
-          input_tag: v0.0.0
-          input_ref: 8ab2d4fb42965f6b29fcd8c15828e4b02ae574e1
-          input_pubkey_url: https://github.com/web-flow.gpg
-        - test_type: inputs_has_tag_only_passes
-          input_repo: https://github.com/actions/runner
-          input_tag: v2.287.1
-          input_pubkey: 4AEE18F83AFDEB23
-        - test_type: inputs_has_ref_only_passes
-          input_repo: https://github.com/kubernetes/kubernetes
-          input_ref: a47c6592
-          input_pubkey_url: https://github.com/web-flow.gpg
-        - test_type: inputs_has_no_ref_or_tag_throws
-          continue-on-error: true
-          input_tag: ''
-          input_ref: ''
-          input_pubkey: 4AEE18F83AFDEB23
-
-        # key & url combos
-        - test_type: inputs_has_key_and_url_throws
-          continue-on-error: true
-          input_repo: https://github.com/github/platform-samples
-          input_ref: 37ae55f6
-          input_pubkey: 5DE3E0509C47EA3CF04A42D34AEE18F83AFDEB23 #fingerprint
-          input_pubkey_url: https://github.com/web-flow.gpg
-        - test_type: inputs_has_url_only_passes
-          input_repo: https://github.com/github/platform-samples
-          input_ref: 37ae55f6
-          input_pubkey_url: https://github.com/web-flow.gpg
-        - test_type: inputs_has_key_only_passes
-          input_repo: https://github.com/github/platform-samples
-          input_ref: 37ae55f6
-          input_pubkey: 4AEE18F83AFDEB23 #longkey
-        - test_type: inputs_has_no_key_or_url_throws
-          continue-on-error: true
-          input_repo: https://github.com/github/platform-samples
-          input_ref: 37ae55f6
-          input_pubkey: ''
-          input_pubkey_url: ''
-
-    steps:
-    -
-      uses: actions/checkout@v2
-    -
-      name: Download artifacts (Docker images) from previous workflows
-      uses: actions/download-artifact@v2
-    -
-      name: Load Docker images from previous workflows
-      run: |
-        docker load --input image/image.tar
-    -
-      uses: kohlerdominik/docker-run-action@v1
-      env:
-        INPUT_REPO: ${{ matrix.input_repo }}
-        INPUT_REF: ${{ matrix.input_ref }}
-        INPUT_TAG: ${{ matrix.input_tag }}
-        INPUT_PUBKEY: ${{ matrix.input_pubkey }}
-        INPUT_PUBKEY_URL: ${{ matrix.input_pubkey_url }}
-      with:
-        image: action-runner-ci-test
-        volumes: ${{ github.workspace }}:/workspace
-        workdir: /workspace
-        environment: |
-          INPUT_REPO=${{ matrix.input_repo }}
-          INPUT_REF=${{ matrix.input_ref }}
-          INPUT_TAG=${{ matrix.input_tag }}
-          INPUT_PUBKEY=${{ matrix.input_pubkey }}
-          INPUT_PUBKEY_URL=${{ matrix.input_pubkey_url }}
-        run: |
-          echo "Running tests"
-          ./entrypoint.sh
-
-```
+See the [test workflow](./.github/workflows/test.yml)
