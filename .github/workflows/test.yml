@@ -65,6 +65,7 @@ jobs:
         INPUT_PUBKEY_URL: ${{ matrix.input_pubkey_url }}
       with:
         image: action-runner
+        volumes: ${{ github.workspace }}:/workspace
         environment: |
           INPUT_REPO=${{ matrix.input_repo }}
           INPUT_REF=${{ matrix.input_ref }}
@@ -73,3 +74,4 @@ jobs:
           INPUT_PUBKEY_URL=${{ matrix.input_pubkey_url }}
         run: |
           echo "Running tests"
+          ./entrypoint.sh
