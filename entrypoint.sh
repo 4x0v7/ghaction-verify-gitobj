@@ -16,6 +16,7 @@ _print_actions_debug "got INPUT_PUBKEY_URL: ${INPUT_PUBKEY_URL}"
 _print_actions_debug "got INPUT_PUBKEY_URL_HASH: ${INPUT_PUBKEY_URL_HASH}"
 
 _print_versions() {
+  echo "::group::_print_versions"
   jo type=debug \
     name=versions \
     os="$(cat /etc/os-release)" \
@@ -23,9 +24,10 @@ _print_versions() {
     tool[git]="$(git --version)" \
     tool[jq]="$(jq --version)" \
     tool[yq]="$(yq --version)" \
-    tool[jo]="$(jo -V)"
+    tool[jo]="$(jo -V)" | jq | yq e -P '.' -
+  echo "::endgroup::"
 }
-_print_versions | jq | yq e -P '.' -
+_print_versions
 
 _actions_start_group() {
   echo "::group::$1"
@@ -83,6 +85,17 @@ _set_ouputs() {
   echo "::set-output name=signature_date::${SIGNATURE_DATE}"
   echo "::set-output name=signer_fingerprint::${SIGNER_FINGERPRINT}"
   echo "::set-output name=signer_longid::${SIGNER_LONGID}"
+  jo func='_set_ouputs()' \
+    type=output \
+    exit_code=0 \
+    result="$(jo \
+    ref="${GIT_REF}" \
+    commit="${GIT_COMMIT}" \
+    signer_name="${SIGNER_NAME}" \
+    signer_email="${SIGNER_EMAIL}" \
+    signature_date="${SIGNATURE_DATE}" \
+    signer_fingerprint="${SIGNER_FINGERPRINT}" \
+    signer_longid="${SIGNER_LONGID}")" | yq e -P '.' -
 }
 
 _verify_commit() {
