@@ -111,6 +111,8 @@ jobs:
           INPUT_TAG=${{ matrix.input_tag }}
           INPUT_PUBKEY=${{ matrix.input_pubkey }}
           INPUT_PUBKEY_URL=${{ matrix.input_pubkey_url }}
+        options: |
+          -t
         run: |
           echo "Running tests"
           ./entrypoint.sh
